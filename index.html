@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Table Comparison - Part 2</title>
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(135deg, #000000, #1a1a2e, #3a0ca3);
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    display: block; /* changed */
+    width: 90%;
+    margin: auto;
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+    width: 150px;
+}
+
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    border: none;
+    background-color: #7209b7;
+    color: white;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #560bad;
+}
+
+.test-btn {
+    background-color: #b300ff;
+    color: black;
+    font-weight: bold;
+}
+
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 90%;
+    background-color: #e5e5e5;
+    color: black;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td {
+    border: 1px solid #999;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #cfcfcf;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+tr:nth-child(odd) {
+    background-color: #f5f5f5;
+}
+
+.delete-btn {
+    background-color: #f72585;
+    padding: 5px 10px;
+}
+</style>
+</head>
+<body>
+
+<h1>Product Table Comparison - Part 2</h1>
+
+<div class="container">
+    <input type="text" id="pName" placeholder="Product Name">
+    <input type="number" id="pPrice" placeholder="Price">
+    <input type="text" id="pCategory" placeholder="Category">
+    <br>
+    <button onclick="addInnerHTML()">Add using innerHTML</button>
+    <button onclick="addDOM()">Add using DOM</button>
+    <button onclick="clearTable()">Clear Table</button>
+    <br>
+    <button class="test-btn" onclick="testPerformance('innerHTML')">Test innerHTML</button>
+    <button class="test-btn" onclick="testPerformance('DOM')">Test DOM</button>
+</div>
+
+<table id="productTable">
+<thead>
+<tr>
+<th>Product Name</th>
+<th>Price</th>
+<th>Category</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<p id="methodDisplay"></p>
+
+<script>
+const tbody = document.getElementById("tableBody");
+
+function isDuplicate(name) {
+    const rows = tbody.querySelectorAll("tr");
+    for (let row of rows) {
+        if (row.children[0].textContent.toLowerCase() === name.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function validate(n, p, c) {
+    if (!n || !p || !c) {
+        alert("Please fill all fields!");
+        return false;
+    }
+    if (isDuplicate(n)) {
+        alert("Duplicate product not allowed!");
+        return false;
+    }
+    return true;
+}
+
+function makeEditable(td) {
+    td.ondblclick = function () {
+        const old = td.textContent;
+        const input = document.createElement("input");
+        input.value = old;
+
+        td.textContent = "";
+        td.appendChild(input);
+        input.focus();
+
+        input.onblur = function () {
+            td.textContent = input.value || old;
+        };
+    };
+}
+
+// --- innerHTML ---
+function addInnerHTML(name, price, cat) {
+    const n = name || document.getElementById("pName").value;
+    const p = price || document.getElementById("pPrice").value;
+    const c = cat || document.getElementById("pCategory").value;
+
+    if (!validate(n, p, c)) return;
+
+    const rowHTML = `<tr>
+        <td ondblclick="editCell(this)">${n}</td>
+        <td ondblclick="editCell(this)">${p}</td>
+        <td ondblclick="editCell(this)">${c}</td>
+        <td><button class="delete-btn" onclick="this.parentElement.parentElement.remove()">Delete</button></td>
+    </tr>`;
+
+    tbody.innerHTML += rowHTML;
+    document.getElementById("methodDisplay").textContent = "Method Used: innerHTML";
+}
+
+function editCell(td) {
+    const old = td.textContent;
+    const input = document.createElement("input");
+    input.value = old;
+
+    td.textContent = "";
+    td.appendChild(input);
+    input.focus();
+
+    input.onblur = function () {
+        td.textContent = input.value || old;
+    };
+}
+
+// --- DOM ---
+function addDOM(name, price, cat) {
+    const n = name || document.getElementById("pName").value;
+    const p = price || document.getElementById("pPrice").value;
+    const c = cat || document.getElementById("pCategory").value;
+
+    if (!validate(n, p, c)) return;
+
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = n;
+    makeEditable(tdName);
+
+    const tdPrice = document.createElement("td");
+    tdPrice.textContent = p;
+    makeEditable(tdPrice);
+
+    const tdCat = document.createElement("td");
+    tdCat.textContent = c;
+    makeEditable(tdCat);
+
+    const tdAction = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.textContent = "Delete";
+    btn.className = "delete-btn";
+    btn.onclick = function () { tr.remove(); };
+    tdAction.appendChild(btn);
+
+    tr.append(tdName, tdPrice, tdCat, tdAction);
+    tbody.appendChild(tr);
+
+    document.getElementById("methodDisplay").textContent = "Method Used: DOM Methods";
+}
+
+// --- TEST ---
+function testPerformance(type) {
+    clearTable();
+    console.time(type);
+
+    for (let i = 1; i <= 100; i++) {
+        if (type === 'innerHTML') {
+            addInnerHTML(`Product ${i}`, Math.floor(Math.random() * 1000), `Category ${i % 5 + 1}`);
+        } else {
+            addDOM(`Product ${i}`, Math.floor(Math.random() * 1000), `Category ${i % 5 + 1}`);
+        }
+    }
+
+    console.timeEnd(type);
+    document.getElementById("methodDisplay").textContent = `Method Used: ${type} (Performance Test)`;
+}
+
+function clearTable() {
+    tbody.innerHTML = "";
+    document.getElementById("methodDisplay").textContent = "";
+}
+</script>
+</body>
+</html>
