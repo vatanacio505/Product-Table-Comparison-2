@@ -21,7 +21,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     padding: 20px;
     border-radius: 15px;
-    display: block; /* changed */
+    display: block;
     width: 90%;
     margin: auto;
 }
@@ -161,7 +161,20 @@ function makeEditable(td) {
     };
 }
 
-// --- innerHTML ---
+// REQUIRED FUNCTION
+function generateManyProducts(count) {
+    let products = [];
+    for (let i = 1; i <= count; i++) {
+        products.push({
+            name: "Product " + i,
+            price: Math.floor(Math.random() * 1000),
+            category: "Category " + (i % 5 + 1)
+        });
+    }
+    return products;
+}
+
+// innerHTML METHOD (intentionally unsafe for testing)
 function addInnerHTML(name, price, cat) {
     const n = name || document.getElementById("pName").value;
     const p = price || document.getElementById("pPrice").value;
@@ -194,7 +207,7 @@ function editCell(td) {
     };
 }
 
-// --- DOM ---
+// DOM METHOD (safe)
 function addDOM(name, price, cat) {
     const n = name || document.getElementById("pName").value;
     const p = price || document.getElementById("pPrice").value;
@@ -229,16 +242,18 @@ function addDOM(name, price, cat) {
     document.getElementById("methodDisplay").textContent = "Method Used: DOM Methods";
 }
 
-// --- TEST ---
+// PERFORMANCE TEST
 function testPerformance(type) {
     clearTable();
     console.time(type);
 
-    for (let i = 1; i <= 100; i++) {
+    const products = generateManyProducts(100);
+
+    for (let product of products) {
         if (type === 'innerHTML') {
-            addInnerHTML(`Product ${i}`, Math.floor(Math.random() * 1000), `Category ${i % 5 + 1}`);
+            addInnerHTML(product.name, product.price, product.category);
         } else {
-            addDOM(`Product ${i}`, Math.floor(Math.random() * 1000), `Category ${i % 5 + 1}`);
+            addDOM(product.name, product.price, product.category);
         }
     }
 
@@ -251,5 +266,6 @@ function clearTable() {
     document.getElementById("methodDisplay").textContent = "";
 }
 </script>
+
 </body>
 </html>
